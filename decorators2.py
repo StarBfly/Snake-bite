@@ -48,7 +48,7 @@ def time_all_class_methods(cls):
         def __init__(self, *args, **kwargs):
             self.cls_instance = cls(*args, **kwargs)
 
-        def __getattribute__(self, s):
+        def __getattribute__(self, name):
             """
             this is called whenever any attribute of a NewCls object is accessed. This function first tries to
             get the attribute off NewCls. If it fails then it tries to fetch the attribute from self.oInstance (an
@@ -56,12 +56,12 @@ def time_all_class_methods(cls):
             the attribute is an instance method then `time_this` is applied.
             """
             try:
-                x = super(NewCls, self).__getattribute__(s)
+                x = super(NewCls, self).__getattribute__(name)
             except AttributeError:
                 pass
             else:
                 return x
-            x = self.cls_instance.__getattribute__(s)
+            x = self.cls_instance.__getattribute__(name)
             if type(x) == type(self.__init__): # it is an instance method
                 return time_this(x)                 # this is equivalent of just decorating the method with time_this
             else:
@@ -82,3 +82,19 @@ class Foo:
 
 foo_object = Foo()
 foo_object.a()
+
+
+def pause(t):
+    def wrapper(f):
+        def tmp(*args, **kwargs):
+            time.sleep(t)
+            return f(*args, **kwargs)
+        return tmp
+
+    return wrapper
+
+@pause(4)
+def func(x, y):
+    return x + y
+
+print(func(1, 2))
