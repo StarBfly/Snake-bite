@@ -51,8 +51,8 @@ def time_all_class_methods(cls):
         def __getattribute__(self, name):
             """
             this is called whenever any attribute of a NewCls object is accessed. This function first tries to
-            get the attribute off NewCls. If it fails then it tries to fetch the attribute from self.oInstance (an
-            instance of the decorated class). If it manages to fetch the attribute from self.oInstance, and
+            get the attribute off NewCls. If it fails then it tries to fetch the attribute from self.cls_instance (an
+            instance of the decorated class). If it manages to fetch the attribute from self.cls_instance, and
             the attribute is an instance method then `time_this` is applied.
             """
             try:
@@ -62,7 +62,7 @@ def time_all_class_methods(cls):
             else:
                 return x
             x = self.cls_instance.__getattribute__(name)
-            if type(x) == type(self.__init__): # it is an instance method
+            if hasattr(x, "__call__"): # it is an instance method
                 return time_this(x)                 # this is equivalent of just decorating the method with time_this
             else:
                 return x
@@ -87,7 +87,9 @@ foo_object.a()
 def pause(t):
     def wrapper(f):
         def tmp(*args, **kwargs):
+            print("Time stopping")
             time.sleep(t)
+            print("Continue")
             return f(*args, **kwargs)
         return tmp
 
@@ -98,3 +100,16 @@ def func(x, y):
     return x + y
 
 print(func(1, 2))
+
+
+def Tracer(aClass): # On @ decorator
+    class Wrapper:
+        def __init__(self, *args, **kargs): # On instance creation
+            self.fetches = 0
+            self.wrapped = aClass(*args, **kargs) # Use enclosing scope name
+
+        def __getattr__(self, attrname):
+            print('Trace: ' + attrname) # Catches all but own attrs
+            self.fetches += 1
+            return getattr(self.wrapped, attrname) # Delegate to wrapped obj
+    return Wrapper
