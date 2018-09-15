@@ -46,3 +46,6 @@ even_thread = CountingThread(num_type="even",
 even_thread_lock.acquire()
 odd_thread.start()
 even_thread.start()
+
+odd_thread.join()
+even_thread.join()
